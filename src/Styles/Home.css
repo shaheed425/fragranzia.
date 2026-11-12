@@ -1,0 +1,14 @@
+.home-main {
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.home-featured {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.home-featured::-webkit-scrollbar {
+  display: none;
+}

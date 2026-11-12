@@ -1,0 +1,10 @@
+@media (max-width:900px) {
+    .single-singleimage{
+        position: relative;
+        right: 40px;
+        /* padding-right: 148px; */
+        /* width: 720px; */
+        align-items: center;
+    }
+    
+}
