@@ -22,8 +22,9 @@ const Singleproduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const contextProduct = data.find((item) => item._id === id);
   const [fetchedProduct, setFetchedProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!contextProduct);
   const [buyingNow, setBuyingNow] = useState(false);
 
   // Scope selections to the current product id so switching products resets selections cleanly
@@ -31,8 +32,14 @@ const Singleproduct = () => {
   const [sizeSelection, setSizeSelection] = useState({ id: null, value: "" });
   const [variantSelection, setVariantSelection] = useState({ id: null, value: "" });
 
-  const contextProduct = data.find((item) => item._id === id);
   const product = contextProduct || fetchedProduct;
+
+  // Immediate instant scroll to top whenever product or route id changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+  }, [id, product?._id]);
 
   const mainImg =
     (imgSelection.id === id ? imgSelection.src : "") || product?.images?.[0] || "";
@@ -97,10 +104,25 @@ const Singleproduct = () => {
     return (
       <div className="min-h-screen bg-[#f1f3f6] flex flex-col">
         <NavBar />
-        <div className="flex-1 flex flex-col items-center justify-center p-6">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0d2a46] mb-3" />
-          <p className="text-sm text-slate-600 font-medium">Loading fragrance details...</p>
-        </div>
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 space-y-6">
+          <div className="h-4 w-48 bg-slate-200 rounded animate-pulse" />
+          <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-5 space-y-4">
+              <div className="aspect-square bg-slate-100 rounded-lg animate-pulse" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="h-11 bg-slate-200 rounded-lg animate-pulse" />
+                <div className="h-11 bg-slate-200 rounded-lg animate-pulse" />
+              </div>
+            </div>
+            <div className="lg:col-span-7 space-y-4">
+              <div className="h-4 w-28 bg-slate-200 rounded animate-pulse" />
+              <div className="h-8 w-3/4 bg-slate-200 rounded animate-pulse" />
+              <div className="h-6 w-36 bg-slate-200 rounded animate-pulse" />
+              <div className="h-24 w-full bg-slate-100 rounded animate-pulse" />
+              <div className="h-12 w-48 bg-slate-200 rounded animate-pulse" />
+            </div>
+          </div>
+        </main>
         <Footer />
       </div>
     );

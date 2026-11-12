@@ -92,7 +92,7 @@ const HERO_SLIDES = [
 
 const Home = () => {
   const { addcart } = useContext(Cartcontext);
-  const { data } = useContext(Maincontext);
+  const { data, loading } = useContext(Maincontext);
   const { category } = useContext(Categorycontext);
   const { input } = useContext(NavbarContext);
   const [slide, setSlide] = useState(0);
@@ -289,7 +289,21 @@ const Home = () => {
           </div>
 
           {displayedProducts.length === 0 ? (
-            <p className="text-sm text-slate-500 py-8 text-center">No fragrances available right now.</p>
+            loading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="bg-white border border-slate-200 rounded-lg p-3 space-y-3 animate-pulse">
+                    <div className="aspect-square bg-slate-100 rounded-md" />
+                    <div className="h-3 w-16 bg-slate-100 rounded" />
+                    <div className="h-4 w-32 bg-slate-100 rounded" />
+                    <div className="h-4 w-20 bg-slate-100 rounded" />
+                    <div className="h-8 w-full bg-slate-100 rounded-md" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 py-8 text-center">No fragrances available right now.</p>
+            )
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               {displayedProducts.slice(0, 10).map((item) => (

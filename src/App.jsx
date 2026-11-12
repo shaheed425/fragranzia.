@@ -25,10 +25,12 @@ import UserProtectedRoute from "./Components/protectroutes/UserProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import OrderSuccessPage from "./Pages/user/OrderSuccessPage";
 import PaymentStatusPage from "./Pages/user/PaymentStatusPage";
+import ScrollToTop from "./Components/ScrollToTop";
 
 function App() {
   return (
     <>
+      <ScrollToTop />
       <Toaster position="top-center" reverseOrder={false} />
       <Routes>
         {/* Guest only routes */}
