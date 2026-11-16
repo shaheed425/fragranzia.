@@ -20,6 +20,8 @@ import { getProductImageUrl, getSizePricing, handleImageError } from "../Axios";
 import {
   launchRazorpayCheckout,
   PENDING_PAYMENT_KEY,
+  showProcessingOverlay,
+  hideProcessingOverlay,
 } from "../utils/razorpayCheckout";
 
 const Checkout = () => {
@@ -137,6 +139,10 @@ const Checkout = () => {
       if (res.success) {
         if (res.paymentMethod === "UPI") {
           setPendingRecoveryOrderId(res?.order?._id || null);
+          showProcessingOverlay(
+            "Connecting to Payment Gateway...",
+            "Opening secure Razorpay payment window, please wait..."
+          );
           await launchRazorpayCheckout({
             razorpayOrder: res?.razorpayOrder,
             orderRecord: res?.order,

@@ -1,9 +1,15 @@
 import { CheckCircle2, Package, Truck, Home, ArrowRight, ReceiptText, MessageCircle, FileText } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { hideProcessingOverlay } from "../../utils/razorpayCheckout";
 
 export default function OrderSuccessPage() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    hideProcessingOverlay();
+  }, []);
   const order = location.state?.order;
   const address = location.state?.address;
 

@@ -21,6 +21,7 @@ import { Cartcontext } from "../../Contexts/contexts";
 import {
   launchRazorpayCheckout,
   PENDING_PAYMENT_KEY,
+  hideProcessingOverlay,
 } from "../../utils/razorpayCheckout";
 
 const POLL_INTERVAL_MS = 5000;
@@ -28,6 +29,10 @@ const MAX_AUTO_POLLS = 12;
 
 export default function PaymentStatusPage() {
   const { orderId } = useParams();
+
+  useEffect(() => {
+    hideProcessingOverlay();
+  }, []);
   const navigate = useNavigate();
   const location = useLocation();
   const { fetchcartproduct } = useContext(Cartcontext);
