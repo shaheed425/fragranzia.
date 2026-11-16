@@ -46,25 +46,47 @@ const WishlistProvider = ({ children }) => {
         navigate("/login");
         return false;
       }
+
+      // Optimistic update: instantly toggle heart and count on screen (0ms delay)
+      const previousWishlist = [...wishlistData];
+      const isAlreadyInWishlist = wishlistData.some(
+        (item) => (typeof item === "object" ? item._id : item) === id
+      );
+
+      let optimisticList;
+      if (isAlreadyInWishlist) {
+        optimisticList = wishlistData.filter(
+          (item) => (typeof item === "object" ? item._id : item) !== id
+        );
+        toast.success("Removed from wishlist", { id: "wishlist-toast" });
+      } else {
+        optimisticList = [...wishlistData, { _id: id }];
+        toast.success("Added to wishlist!", { id: "wishlist-toast" });
+      }
+      setWishlistData(optimisticList);
+
       try {
         const res = await addwishlist(id);
-        if (res) {
-          setWishlistData(res.data || []);
-          toast.success(res.message);
+        if (res && res.data) {
+          setWishlistData(res.data);
           return true;
         }
         return false;
       } catch (error) {
+        // Rollback on network failure
+        setWishlistData(previousWishlist);
         if (error.response?.status === 401) {
-          toast.error("Login Required!");
+          toast.error("Login Required!", { id: "wishlist-toast" });
           navigate("/login");
           return false;
         }
-        toast.error(error.response?.data?.message || "Failed to update wishlist");
+        toast.error(error.response?.data?.message || "Failed to update wishlist", {
+          id: "wishlist-toast",
+        });
         return false;
       }
     },
-    [auth?.token, addwishlist, navigate]
+    [auth?.token, wishlistData, addwishlist, navigate]
   );
 
   return (
