@@ -162,7 +162,9 @@ export default function PaymentStatusPage() {
 
   const supportPhone = import.meta.env.VITE_WHATSAPP_NUMBER || "918590315711";
   const cleanSupportPhone = String(supportPhone).replace(/\D/g, "");
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_URL ||
+    (import.meta.env.DEV ? "http://localhost:5000" : "https://fragrazia-backend.vercel.app");
   const confirmedOrderId = order?._id || orderId;
   const invoicePdfUrl = confirmedOrderId
     ? `${backendUrl}/api/order/invoice/${confirmedOrderId}`

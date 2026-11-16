@@ -3,7 +3,7 @@ import axios from "axios";
 const rawApiUrl =
   import.meta.env.VITE_BACKEND_URL ||
   import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? "http://localhost:5000" : "");
+  (import.meta.env.DEV ? "http://localhost:5000" : "https://fragrazia-backend.vercel.app");
 
 export const BASE_URL = rawApiUrl.replace(/\/+$/, "");
 export const IMAGE_URL = `${BASE_URL}/uploads`;
