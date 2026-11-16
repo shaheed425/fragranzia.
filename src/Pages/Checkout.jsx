@@ -16,6 +16,7 @@ import {
 import useUserService from "../service/user-api-service/UserService";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
+import { Minus, Plus } from "lucide-react";
 import { getProductImageUrl, getSizePricing, handleImageError } from "../Axios";
 import {
   launchRazorpayCheckout,
@@ -29,7 +30,8 @@ const Checkout = () => {
   const { address, setAddress, addAddress, fetchedAddress, getAddresses } =
     useContext(AddressContext);
   const { editshow, setEditshow } = useContext(Checkoutcontext);
-  const { cart, fetchcartproduct, removeitem } = useContext(Cartcontext);
+  const { cart, fetchcartproduct, removeitem, incrementqty, decrementqty } =
+    useContext(Cartcontext);
   const { ordering, verifyPaymentAPI, reportClientFailureAPI } = useUserService();
 
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -482,17 +484,59 @@ const Checkout = () => {
                                 : `Only ${item.product.stock ?? 0} in stock`}
                             </p>
                           )}
-                          <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 text-xs text-slate-500">
-                            <span>
-                              {displaySize ? `${displaySize} • ` : ""}Qty: {item.quantity}
-                            </span>
-                            <div className="flex items-center gap-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3 mt-2 text-xs text-slate-500">
+                            <div className="flex items-center gap-2.5">
+                              {displaySize && (
+                                <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
+                                  {displaySize}
+                                </span>
+                              )}
+
+                              {/* Interactive Quantity Control (- / +) */}
+                              <div className="inline-flex items-center border border-slate-300 rounded-lg overflow-hidden bg-white shadow-2xs">
+                                <button
+                                  type="button"
+                                  onClick={() => decrementqty(item.product._id, item.size)}
+                                  disabled={placingOrder}
+                                  aria-label={`Decrease quantity of ${item.product.name}`}
+                                  className="p-1.5 text-slate-700 hover:bg-slate-100 transition disabled:opacity-40 cursor-pointer"
+                                  title="Decrease quantity"
+                                >
+                                  <Minus size={13} />
+                                </button>
+                                <span
+                                  aria-live="polite"
+                                  className="px-2.5 py-0.5 text-xs font-bold text-slate-900 bg-slate-50 border-x border-slate-300 min-w-[28px] text-center select-none"
+                                >
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => incrementqty(item.product._id, item.size)}
+                                  disabled={
+                                    placingOrder ||
+                                    (item.product.stock ?? 0) <= (item.quantity || 1)
+                                  }
+                                  aria-label={`Increase quantity of ${item.product.name}`}
+                                  className="p-1.5 text-slate-700 hover:bg-slate-100 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                                  title={
+                                    (item.product.stock ?? 0) <= (item.quantity || 1)
+                                      ? "Max stock reached"
+                                      : "Increase quantity"
+                                  }
+                                >
+                                  <Plus size={13} />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 ml-auto">
                               <button
                                 type="button"
                                 onClick={() => removeitem(item.product._id, item.size)}
                                 disabled={placingOrder}
                                 aria-label={`Remove ${item.product.name} from order`}
-                                className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded transition disabled:opacity-50"
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded transition disabled:opacity-50 cursor-pointer"
                               >
                                 <TrashIcon className="w-3.5 h-3.5" />
                                 Remove
