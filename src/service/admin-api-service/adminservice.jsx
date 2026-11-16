@@ -53,6 +53,14 @@ const useAdminService = () => {
     return response.data;
   }, [axiosPrivate]);
 
+  const adminResetUserPasswordAPI = useCallback(async (userId, newPassword) => {
+    const response = await axiosPrivate.put("/api/user/admin-reset-password", {
+      userId,
+      newPassword,
+    });
+    return response.data;
+  }, [axiosPrivate]);
+
   const login = useCallback(async (data) => {
     const response = await axiosPrivate.post("/api/user/login", data);
     return response.data;
@@ -95,6 +103,7 @@ const useAdminService = () => {
     deleteCategoryData,
     putCategoryData,
     getUsersData,
+    adminResetUserPasswordAPI,
     login,
     getallorders,
     updateOrderStatusAPI,
