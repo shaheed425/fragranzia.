@@ -557,6 +557,87 @@ const Checkout = () => {
 
           {/* RIGHT COLUMN: PAYMENT & PRICE SUMMARY */}
           <aside className="lg:col-span-4 bg-white rounded-lg border border-slate-200 p-4 sm:p-5 lg:sticky lg:top-20 space-y-5">
+            {/* Items in Order with Quantity Controls in Payment sidebar */}
+            {validCart.length > 0 && (
+              <div className="space-y-2.5 pb-4 border-b border-slate-100">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Order Items ({validCart.reduce((acc, it) => acc + (it.quantity || 0), 0)})
+                  </h2>
+                  <span className="text-[11px] text-slate-400">Qty controls</span>
+                </div>
+
+                <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                  {validCart.map((item) => {
+                    const { effectivePrice, size: displaySize } = getSizePricing(
+                      item.product,
+                      item.size
+                    );
+                    return (
+                      <div
+                        key={`side-${item.product._id}-${item.size || "default"}`}
+                        className="flex items-center justify-between gap-2.5 p-2 rounded-lg bg-slate-50 border border-slate-200/70 text-xs"
+                      >
+                        <div className="w-10 h-10 bg-white border border-slate-200 rounded p-1 flex items-center justify-center shrink-0">
+                          <img
+                            src={getProductImageUrl(item.product.images)}
+                            onError={handleImageError}
+                            alt={item.product.name}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-slate-900 truncate">
+                            {item.product.name}
+                          </p>
+                          <p className="text-[11px] text-slate-500">
+                            {displaySize ? `${displaySize} • ` : ""}₹{effectivePrice}
+                          </p>
+                        </div>
+
+                        {/* Interactive Quantity Control (- / +) */}
+                        <div className="inline-flex items-center border border-slate-300 rounded overflow-hidden bg-white shrink-0 shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => decrementqty(item.product._id, item.size)}
+                            disabled={placingOrder}
+                            aria-label={`Decrease quantity of ${item.product.name}`}
+                            className="px-1.5 py-0.5 text-slate-700 hover:bg-slate-100 transition disabled:opacity-40 cursor-pointer"
+                            title="Decrease quantity"
+                          >
+                            <Minus size={11} />
+                          </button>
+                          <span
+                            aria-live="polite"
+                            className="px-2 py-0.5 text-xs font-bold text-slate-900 bg-slate-50 border-x border-slate-200 min-w-[22px] text-center select-none"
+                          >
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => incrementqty(item.product._id, item.size)}
+                            disabled={
+                              placingOrder ||
+                              (item.product.stock ?? 0) <= (item.quantity || 1)
+                            }
+                            aria-label={`Increase quantity of ${item.product.name}`}
+                            className="px-1.5 py-0.5 text-slate-700 hover:bg-slate-100 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                            title={
+                              (item.product.stock ?? 0) <= (item.quantity || 1)
+                                ? "Max stock reached"
+                                : "Increase quantity"
+                            }
+                          >
+                            <Plus size={11} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2.5">
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 pb-2 border-b border-slate-100">
                 Price Details
