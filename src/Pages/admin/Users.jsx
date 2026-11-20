@@ -13,6 +13,7 @@ import {
   Check,
   X,
   Info,
+  Copy,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -22,10 +23,13 @@ const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { getUsersData, adminResetUserPasswordAPI } = useAdminService();
 
+  // Password visibility state map: { [userId]: boolean }
+  const [revealedPasswords, setRevealedPasswords] = useState({});
+
   // Password reset modal state
   const [selectedUser, setSelectedUser] = useState(null);
   const [newPassword, setNewPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [showModalPassword, setShowModalPassword] = useState(false);
   const [resetting, setResetting] = useState(false);
 
   const fetchUsers = useCallback(async () => {
@@ -43,6 +47,19 @@ const Users = () => {
     fetchUsers();
   }, [fetchUsers]);
 
+  const togglePasswordVisibility = (userId) => {
+    setRevealedPasswords((prev) => ({
+      ...prev,
+      [userId]: !prev[userId],
+    }));
+  };
+
+  const copyPassword = (password, userName) => {
+    if (!password) return;
+    navigator.clipboard.writeText(password);
+    toast.success(`Copied password for ${userName}!`);
+  };
+
   const handlePasswordReset = async (e) => {
     e.preventDefault();
     if (!selectedUser || !newPassword || newPassword.length < 6) {
@@ -54,9 +71,25 @@ const Users = () => {
       setResetting(true);
       const res = await adminResetUserPasswordAPI(selectedUser._id, newPassword);
       toast.success(res?.message || `Password updated for ${selectedUser.name}!`);
+
+      // Update state locally so the new password is shown immediately
+      setUsers((prev) =>
+        prev.map((u) =>
+          u._id === selectedUser._id
+            ? { ...u, visiblePassword: newPassword }
+            : u
+        )
+      );
+
+      // Automatically reveal the newly assigned password
+      setRevealedPasswords((prev) => ({
+        ...prev,
+        [selectedUser._id]: true,
+      }));
+
       setSelectedUser(null);
       setNewPassword("");
-      setShowPassword(false);
+      setShowModalPassword(false);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to update password");
     } finally {
@@ -79,7 +112,7 @@ const Users = () => {
             Customers & Users ({users.length})
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Registered accounts, security status, and role management across Fragranzia
+            Registered accounts, live password visibility, and credentials management
           </p>
         </div>
         <div className="inline-flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-700">
@@ -88,15 +121,15 @@ const Users = () => {
         </div>
       </header>
 
-      {/* Security Note Banner */}
+      {/* Security Banner */}
       <div className="bg-sky-50 border border-sky-200 rounded-xl p-3.5 flex items-start gap-3 text-xs text-sky-950">
         <Info className="w-5 h-5 text-sky-700 shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <p className="font-bold text-sky-900">
-            Bank-Grade Password Security (Bcrypt One-Way Encryption)
+            Admin Credential Access & Password Viewer
           </p>
           <p className="text-sky-800 leading-relaxed">
-            Per global privacy laws and Razorpay PCI-DSS security standards, customer passwords are cryptographically hashed using <strong>Bcrypt</strong> and cannot be decrypted by anyone. If a customer forgets their credentials, use the <strong>Reset Password</strong> action below to assign a new temporary password.
+            Click the <Eye size={12} className="inline mx-1 text-slate-700" /> <strong>Eye icon</strong> next to any user below to reveal their password or <Copy size={12} className="inline mx-1 text-slate-700" /> to copy it. For any customer needing assistance, use <strong>Reset Password</strong> to assign and view their new password.
           </p>
         </div>
       </div>
@@ -126,7 +159,7 @@ const Users = () => {
                 <th className="px-4 py-3">Member</th>
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Role</th>
-                <th className="px-4 py-3">Password / Security</th>
+                <th className="px-4 py-3">Password</th>
                 <th className="px-4 py-3">Joined</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
@@ -143,6 +176,9 @@ const Users = () => {
               ) : filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => {
                   const isUserAdmin = user.role === "admin";
+                  const isRevealed = Boolean(revealedPasswords[user._id]);
+                  const hasPassword = Boolean(user.visiblePassword);
+
                   return (
                     <tr key={user._id} className="hover:bg-slate-50 transition">
                       <td className="px-4 py-3.5">
@@ -178,15 +214,52 @@ const Users = () => {
                           {isUserAdmin ? "Admin" : "Customer"}
                         </span>
                       </td>
+
+                      {/* Password Show / Hide Column */}
                       <td className="px-4 py-3.5">
-                        <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded px-2.5 py-1 text-xs text-slate-600">
-                          <Lock size={12} className="text-emerald-600" />
-                          <span className="tracking-widest font-mono text-slate-800">••••••••</span>
-                          <span className="text-[10px] text-slate-400 ml-1 font-sans">
-                            (Bcrypt Hashed)
-                          </span>
-                        </div>
+                        {hasPassword ? (
+                          <div className="inline-flex items-center gap-2 bg-slate-50 border border-slate-200/90 rounded-lg px-2.5 py-1 text-xs">
+                            <Lock size={12} className="text-emerald-600 shrink-0" />
+                            <span className="font-mono font-bold text-slate-800 tracking-wider select-all">
+                              {isRevealed ? user.visiblePassword : "••••••••"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => togglePasswordVisibility(user._id)}
+                              className="text-slate-500 hover:text-slate-900 p-0.5 rounded transition cursor-pointer"
+                              title={isRevealed ? "Hide password" : "Show password"}
+                            >
+                              {isRevealed ? <EyeOff size={14} /> : <Eye size={14} />}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => copyPassword(user.visiblePassword, user.name)}
+                              className="text-slate-400 hover:text-[#0d2a46] p-0.5 rounded transition cursor-pointer"
+                              title="Copy password"
+                            >
+                              <Copy size={13} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-1.5 bg-amber-50/80 border border-amber-200 rounded-lg px-2.5 py-1 text-xs text-amber-800">
+                            <Lock size={12} className="text-amber-600 shrink-0" />
+                            <span className="font-mono text-slate-600">••••••••</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setNewPassword("");
+                                setShowModalPassword(true);
+                              }}
+                              className="text-[11px] font-semibold text-amber-900 underline hover:text-amber-950 ml-1 cursor-pointer"
+                              title="Set password to make it visible"
+                            >
+                              Reset to view
+                            </button>
+                          </div>
+                        )}
                       </td>
+
                       <td className="px-4 py-3.5 text-xs text-slate-600 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5">
                           <Calendar size={13} className="text-slate-400" />
@@ -197,13 +270,14 @@ const Users = () => {
                           })}
                         </span>
                       </td>
+
                       <td className="px-4 py-3.5 text-right whitespace-nowrap">
                         <button
                           type="button"
                           onClick={() => {
                             setSelectedUser(user);
                             setNewPassword("");
-                            setShowPassword(false);
+                            setShowModalPassword(true);
                           }}
                           className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0d2a46] hover:text-[#163d61] bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-lg border border-sky-200 transition cursor-pointer"
                           title={`Reset password for ${user.name}`}
@@ -238,7 +312,7 @@ const Users = () => {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">
-                    Set New Password
+                    Set User Password
                   </h3>
                   <p className="text-xs text-slate-500">
                     For <strong className="text-slate-700">{selectedUser.name}</strong> ({selectedUser.email})
@@ -261,7 +335,7 @@ const Users = () => {
                 </label>
                 <div className="relative">
                   <input
-                    type={showPassword ? "text" : "password"}
+                    type={showModalPassword ? "text" : "password"}
                     required
                     minLength={6}
                     placeholder="Enter at least 6 characters..."
@@ -271,14 +345,14 @@ const Users = () => {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setShowModalPassword(!showModalPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showModalPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
                 <p className="text-[11px] text-slate-400">
-                  Once saved, the user can log in immediately with this new password.
+                  This password will be immediately visible to you in the table and usable by the customer.
                 </p>
               </div>
 
@@ -297,7 +371,7 @@ const Users = () => {
                   className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-[#0d2a46] hover:bg-[#163d61] rounded-lg transition disabled:opacity-50 shadow-xs cursor-pointer"
                 >
                   <Check size={14} />
-                  {resetting ? "Saving..." : "Save New Password"}
+                  {resetting ? "Saving..." : "Save Password"}
                 </button>
               </div>
             </form>
